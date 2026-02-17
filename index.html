@@ -2,17 +2,22 @@
 <html>
 <head>
 <title>Drone Racing Waiver</title>
+
 <style>
 body { font-family: Arial; max-width:600px; margin:auto; }
 input, textarea { width:100%; padding:10px; margin:10px 0; }
-button { background:black; color:white; padding:15px; }
+button { background:black; color:white; padding:15px; width:100%; }
 </style>
+
+<!-- jsPDF for real PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 </head>
 
 <body>
 <h2>Drone Racing Waiver</h2>
 
-<form action="https://formsubmit.co/00ce3a8518aaf4e0d1093828f1eab7f7" method="POST" onsubmit="return validateForm()">
+<form action="https://formsubmit.co/kelechi.nwuke@gmail.com" method="POST" onsubmit="return validateForm()">
 
 <input type="text" name="Participant Name" placeholder="Participant Name" required>
 
@@ -20,7 +25,7 @@ button { background:black; color:white; padding:15px; }
 
 <input type="text" id="guardian" name="Guardian Name" placeholder="Parent/Guardian (only if under 18)">
 
-<input type="email" name="Email" placeholder="Email" required>
+<input type="email" name="email" placeholder="Email" required>
 
 <input type="text" name="Phone" placeholder="Phone Number" required>
 
@@ -41,21 +46,22 @@ By signing below, I acknowledge that I have read and agree to this waiver.
 </textarea>
 
 <label>Type your full name as signature</label>
-<input type="text" name="Signature" id="signature" required>
+<input type="text" id="signature" name="Signature" required>
 
 <input type="hidden" name="_template" value="table">
 
-<!-- Sends copy to signer -->
-<input type="hidden" name="_autoresponse" value="Thank you for signing the Velocity Labs Drone Racing Waiver. A copy of your agreement is attached. Fly safe!">
+<!-- tells FormSubmit to email the signer -->
+<input type="hidden" name="_replyto" value="">
 
-<!-- Redirect after submit -->
-<input type="hidden" name="_next" value="thankyou.html">
+<!-- Auto-response email -->
+<input type="hidden" name="_autoresponse" value="Thank you for signing the Velocity Labs Drone Racing Waiver. Please keep this email for your records. Fly safe!">
 
 <button type="submit">I Agree & Race</button>
+
 </form>
 
 <br>
-<button onclick="downloadPDF()">Download Waiver PDF</button>
+<button onclick="downloadPDF()">Download My Waiver PDF</button>
 
 <script>
 function validateForm() {
@@ -70,17 +76,28 @@ function validateForm() {
 }
 
 function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  var doc = new jsPDF();
+
   var name = document.querySelector('input[name="Participant Name"]').value;
+  var age = document.getElementById("age").value;
+  var guardian = document.getElementById("guardian").value;
+  var email = document.querySelector('input[name="email"]').value;
+  var phone = document.querySelector('input[name="Phone"]').value;
   var sig = document.getElementById("signature").value;
   var waiver = document.getElementById("waiverText").value;
 
-  var content = "Participant: " + name + "\nSignature: " + sig + "\n\n" + waiver;
+  doc.text("Velocity Labs Drone Racing Waiver", 10, 10);
+  doc.text("Participant: " + name, 10, 20);
+  doc.text("Age: " + age, 10, 30);
+  if (guardian) doc.text("Guardian: " + guardian, 10, 40);
+  doc.text("Email: " + email, 10, 50);
+  doc.text("Phone: " + phone, 10, 60);
+  doc.text("Signature: " + sig, 10, 70);
 
-  var blob = new Blob([content], { type: "application/pdf" });
-  var link = document.createElement("a");
-  link.href = window.URL.createObjectURL(blob);
-  link.download = "Drone_Waiver.pdf";
-  link.click();
+  doc.text(waiver, 10, 90, { maxWidth: 180 });
+
+  doc.save("Drone_Racing_Waiver.pdf");
 }
 </script>
 

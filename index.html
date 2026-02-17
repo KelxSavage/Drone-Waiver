@@ -12,13 +12,13 @@ button { background:black; color:white; padding:15px; }
 <body>
 <h2>Drone Racing Waiver</h2>
 
-<form action="https://formsubmit.co/kelechi.nwuke@gmail.com" method="POST">
+<form action="https://formsubmit.co/00ce3a8518aaf4e0d1093828f1eab7f7" method="POST" onsubmit="return validateForm()">
 
 <input type="text" name="Participant Name" placeholder="Participant Name" required>
 
-<input type="number" name="Age" placeholder="Age" required>
+<input type="number" id="age" name="Age" placeholder="Age" required>
 
-<input type="text" name="Guardian Name" placeholder="Parent/Guardian (only if under 18)">
+<input type="text" id="guardian" name="Guardian Name" placeholder="Parent/Guardian (only if under 18)">
 
 <input type="email" name="Email" placeholder="Email" required>
 
@@ -47,3 +47,19 @@ By signing below, I acknowledge that I have read and agree to this waiver.
 
 <button type="submit">I Agree & Race</button>
 </form>
+
+<script>
+function validateForm() {
+  var age = document.getElementById("age").value;
+  var guardian = document.getElementById("guardian").value;
+
+  if (age < 18 && guardian.trim() === "") {
+    alert("Parent or Guardian name is required for participants under 18.");
+    return false;
+  }
+  return true;
+}
+</script>
+
+</body>
+</html>

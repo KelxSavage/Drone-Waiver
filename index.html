@@ -4,12 +4,54 @@
 <title>Drone Racing Waiver</title>
 
 <style>
-body { font-family: Arial; max-width:600px; margin:auto; }
-input, textarea { width:100%; padding:10px; margin:10px 0; }
-button { background:black; color:white; padding:15px; width:100%; }
+body {
+  font-family: Arial;
+  max-width: 600px;
+  margin: auto;
+  padding: 10px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  box-sizing: border-box;
+}
+
+button {
+  background: black;
+  color: white;
+  padding: 15px;
+  width: 100%;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #222;
+}
+
+/* ⭐ NEW: scrollable waiver box */
+.waiver-box {
+  height: 180px;
+  overflow-y: auto;
+  border: 2px solid #ddd;
+  padding: 10px;
+  background: #fafafa;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.agree-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+}
 </style>
 
-<!-- jsPDF for real PDF generation -->
+<!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 </head>
@@ -17,19 +59,25 @@ button { background:black; color:white; padding:15px; width:100%; }
 <body>
 <h2>Drone Racing Waiver</h2>
 
-<form action="https://formsubmit.co/00ce3a8518aaf4e0d1093828f1eab7f7" method="POST" onsubmit="return validateForm()">
+<form action="https://formsubmit.co/00ce3a8518aaf4e0d1093828f1eab7f7"
+      method="POST"
+      onsubmit="return validateForm()">
 
 <input type="text" name="Participant Name" placeholder="Participant Name" required>
 
 <input type="number" id="age" name="Age" placeholder="Age" required>
 
-<input type="text" id="guardian" name="Guardian Name" placeholder="Parent/Guardian (only if under 18)">
+<input type="text" id="guardian" name="Guardian Name"
+       placeholder="Parent/Guardian (only if under 18)">
 
 <input type="email" name="email" placeholder="Email" required>
 
 <input type="text" name="Phone" placeholder="Phone Number" required>
 
-<textarea id="waiverText" readonly>
+<label><strong>Liability Waiver *</strong></label>
+
+<!-- ⭐ Scrollable waiver -->
+<div class="waiver-box" id="waiverText">
 DRONE RACING LIABILITY WAIVER & RELEASE
 
 I understand that participation in drone racing involves small flying aircraft and carries risks including, but not limited to, minor injury, property damage, or equipment malfunction.
@@ -43,18 +91,21 @@ I release and hold harmless Velocity Labs, its operators, staff, volunteers, and
 If I am signing on behalf of a minor, I certify that I am the parent or legal guardian and that I have the legal authority to sign this agreement.
 
 By signing below, I acknowledge that I have read and agree to this waiver.
-</textarea>
+</div>
 
-<label>Type your full name as signature</label>
+<!-- ⭐ Required agreement -->
+<div class="agree-row">
+  <input type="checkbox" id="agree" required>
+  <label for="agree">I have read and agree to the waiver *</label>
+</div>
+
+<label>Type your full name as signature *</label>
 <input type="text" id="signature" name="Signature" required>
 
 <input type="hidden" name="_template" value="table">
-
-<!-- tells FormSubmit to email the signer -->
 <input type="hidden" name="_replyto" value="">
-
-<!-- Auto-response email -->
-<input type="hidden" name="_autoresponse" value="Thank you for signing the Velocity Labs Drone Racing Waiver. Please keep this email for your records. Fly safe!">
+<input type="hidden" name="_autoresponse"
+       value="Thank you for signing the Velocity Labs Drone Racing Waiver. Please keep this email for your records. Fly safe!">
 
 <button type="submit">I Agree & Race</button>
 
@@ -85,7 +136,8 @@ function downloadPDF() {
   var email = document.querySelector('input[name="email"]').value;
   var phone = document.querySelector('input[name="Phone"]').value;
   var sig = document.getElementById("signature").value;
-  var waiver = document.getElementById("waiverText").value;
+
+  var waiverText = document.getElementById("waiverText").innerText;
 
   doc.text("Velocity Labs Drone Racing Waiver", 10, 10);
   doc.text("Participant: " + name, 10, 20);
@@ -95,7 +147,7 @@ function downloadPDF() {
   doc.text("Phone: " + phone, 10, 60);
   doc.text("Signature: " + sig, 10, 70);
 
-  doc.text(waiver, 10, 90, { maxWidth: 180 });
+  doc.text(waiverText, 10, 90, { maxWidth: 180 });
 
   doc.save("Drone_Racing_Waiver.pdf");
 }

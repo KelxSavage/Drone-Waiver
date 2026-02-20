@@ -6,48 +6,29 @@
 <style>
 body {
   font-family: Arial;
-  max-width: 600px;
-  margin: auto;
-  padding: 10px;
+  max-width:600px;
+  margin:auto;
+  padding:20px;
 }
 
 input, textarea {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  box-sizing: border-box;
+  width:100%;
+  padding:10px;
+  margin:10px 0;
+  box-sizing:border-box;
 }
 
 button {
-  background: black;
-  color: white;
-  padding: 15px;
-  width: 100%;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
+  background:black;
+  color:white;
+  padding:15px;
+  width:100%;
+  cursor:pointer;
 }
 
-button:hover {
-  background: #222;
-}
-
-/* ⭐ NEW: scrollable waiver box */
-.waiver-box {
-  height: 180px;
-  overflow-y: auto;
-  border: 2px solid #ddd;
-  padding: 10px;
-  background: #fafafa;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.agree-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 10px 0;
+#waiverText {
+  height:220px;
+  resize:none;
 }
 </style>
 
@@ -57,11 +38,14 @@ button:hover {
 </head>
 
 <body>
+
 <h2>Drone Racing Waiver</h2>
 
-<form action="https://formsubmit.co/00ce3a8518aaf4e0d1093828f1eab7f7"
+<form id="waiverForm"
+      action="https://formsubmit.co/00ce3a8518aaf4e0d1093828f1eab7f7"
       method="POST"
-      onsubmit="return validateForm()">
+      enctype="multipart/form-data"
+      onsubmit="return handleSubmit(event)">
 
 <input type="text" name="Participant Name" placeholder="Participant Name" required>
 
@@ -70,14 +54,11 @@ button:hover {
 <input type="text" id="guardian" name="Guardian Name"
        placeholder="Parent/Guardian (only if under 18)">
 
-<input type="email" name="email" placeholder="Email" required>
+<input type="email" id="email" name="email" placeholder="Email" required>
 
 <input type="text" name="Phone" placeholder="Phone Number" required>
 
-<label><strong>Liability Waiver *</strong></label>
-
-<!-- ⭐ Scrollable waiver -->
-<div class="waiver-box" id="waiverText">
+<textarea id="waiverText" readonly>
 DRONE RACING LIABILITY WAIVER & RELEASE
 
 I understand that participation in drone racing involves small flying aircraft and carries risks including, but not limited to, minor injury, property damage, or equipment malfunction.
@@ -91,27 +72,26 @@ I release and hold harmless Velocity Labs, its operators, staff, volunteers, and
 If I am signing on behalf of a minor, I certify that I am the parent or legal guardian and that I have the legal authority to sign this agreement.
 
 By signing below, I acknowledge that I have read and agree to this waiver.
-</div>
+</textarea>
 
-<!-- ⭐ Required agreement -->
-<div class="agree-row">
-  <input type="checkbox" id="agree" required>
-  <label for="agree">I have read and agree to the waiver *</label>
-</div>
-
-<label>Type your full name as signature *</label>
+<label><b>Type your full name as signature</b></label>
 <input type="text" id="signature" name="Signature" required>
 
+<!-- hidden file input for PDF attachment -->
+<input type="file" id="pdfAttachment" name="attachment" style="display:none">
+
 <input type="hidden" name="_template" value="table">
-<input type="hidden" name="_replyto" value="">
+<input type="hidden" name="_replyto" id="replyto">
+
 <input type="hidden" name="_autoresponse"
-       value="Thank you for signing the Velocity Labs Drone Racing Waiver. Please keep this email for your records. Fly safe!">
+value="Thank you for signing the Velocity Labs Drone Racing Waiver. Please keep this email for your records. Fly safe!">
 
 <button type="submit">I Agree & Race</button>
 
 </form>
 
 <br>
+
 <button onclick="downloadPDF()">Download My Waiver PDF</button>
 
 <script>
@@ -126,30 +106,74 @@ function validateForm() {
   return true;
 }
 
-function downloadPDF() {
+async function buildPDFBlob() {
   const { jsPDF } = window.jspdf;
   var doc = new jsPDF();
 
-  var name = document.querySelector('input[name="Participant Name"]').value;
-  var age = document.getElementById("age").value;
-  var guardian = document.getElementById("guardian").value;
-  var email = document.querySelector('input[name="email"]').value;
-  var phone = document.querySelector('input[name="Phone"]').value;
-  var sig = document.getElementById("signature").value;
+  var name = document.querySelector('input[name="Participant Name"]').value || "";
+  var age = document.getElementById("age").value || "";
+  var guardian = document.getElementById("guardian").value || "";
+  var email = document.getElementById("email").value || "";
+  var phone = document.querySelector('input[name="Phone"]').value || "";
+  var sig = document.getElementById("signature").value || "";
+  var waiver = document.getElementById("waiverText").value;
 
-  var waiverText = document.getElementById("waiverText").innerText;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("Velocity Labs Drone Racing Waiver", 105, 15, { align: "center" });
 
-  doc.text("Velocity Labs Drone Racing Waiver", 10, 10);
-  doc.text("Participant: " + name, 10, 20);
-  doc.text("Age: " + age, 10, 30);
-  if (guardian) doc.text("Guardian: " + guardian, 10, 40);
-  doc.text("Email: " + email, 10, 50);
-  doc.text("Phone: " + phone, 10, 60);
-  doc.text("Signature: " + sig, 10, 70);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
 
-  doc.text(waiverText, 10, 90, { maxWidth: 180 });
+  let y = 30;
+  const lineGap = 7;
 
-  doc.save("Drone_Racing_Waiver.pdf");
+  doc.text(`Participant: ${name}`, 15, y); y += lineGap;
+  doc.text(`Age: ${age}`, 15, y); y += lineGap;
+
+  if (guardian) {
+    doc.text(`Guardian: ${guardian}`, 15, y);
+    y += lineGap;
+  }
+
+  doc.text(`Email: ${email}`, 15, y); y += lineGap;
+  doc.text(`Phone: ${phone}`, 15, y); y += lineGap;
+  doc.text(`Signature: ${sig}`, 15, y); y += 10;
+
+  const splitWaiver = doc.splitTextToSize(waiver, 180);
+  doc.setFontSize(10);
+  doc.text(splitWaiver, 15, y, { lineHeightFactor: 1.5 });
+
+  return doc.output("blob");
+}
+
+async function handleSubmit(e) {
+  if (!validateForm()) return false;
+
+  document.getElementById("replyto").value =
+    document.getElementById("email").value;
+
+  // build PDF and attach
+  const blob = await buildPDFBlob();
+  const file = new File([blob], "Velocity_Labs_Waiver.pdf", { type: "application/pdf" });
+
+  const container = new DataTransfer();
+  container.items.add(file);
+  document.getElementById("pdfAttachment").files = container.files;
+
+  return true;
+}
+
+async function downloadPDF() {
+  const blob = await buildPDFBlob();
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Velocity_Labs_Waiver.pdf";
+  a.click();
+
+  URL.revokeObjectURL(url);
 }
 </script>
 
